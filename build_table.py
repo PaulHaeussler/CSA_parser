@@ -91,6 +91,7 @@ if csa.language == "EN":
 sc = 1  # section counter
 for s in csa.sections:
     print(f"  Creating section {sc} {s.name}")
+    doc.add_paragraph().add_run(f"Questions answered: {csa.questions_answered}")
     # Set title
     pt = doc.add_paragraph().add_run(f"{sc}. {s.name}")
     pt.font.size = Pt(12)
@@ -145,7 +146,7 @@ for s in csa.sections:
             r[1].paragraphs[0].runs[0].font.size = Pt(11)
             r[1].paragraphs[0].runs[0].font.name = "Arial"
             set_border(r[1])
-            if q.type != "M":
+            if q.type != "M" and q.type != "E":
                 r[2].text = q.answer
                 r[2].width = Cm(7.2)
                 r[2].height = Cm(0.42)
@@ -154,7 +155,7 @@ for s in csa.sections:
                 set_border(r[2])
             else:
                 r[1].merge(r[2])
-            if q.type == "M":
+            if q.type == "M" or q.type == "E":
                 for i, key in enumerate(q.options):
                     rr = t.add_row().cells
                     rr[0].width = Cm(1.3)
@@ -166,15 +167,19 @@ for s in csa.sections:
                     rr[1].paragraphs[0].runs[0].font.size = Pt(11)
                     rr[1].paragraphs[0].runs[0].font.name = "Arial"
                     set_border(rr[1])
-                    if q.options[key]:
-                        rr[2].text = "X"
+                    if q.type == "M":
+                        if q.options[key]:
+                            rr[2].text = "X"
+                        else:
+                            rr[2].text = ""
                     else:
-                        rr[2].text = ""
+                        rr[2].text = q.options[key]
                     rr[2].width = Cm(1.0)
                     rr[2].height = Cm(0.42)
                     rr[2].paragraphs[0].runs[0].font.size = Pt(11)
                     rr[2].paragraphs[0].runs[0].font.name = "Arial"
                     set_border(rr[2])
+
 
             # Comment
             if hasattr(q, "comment"):

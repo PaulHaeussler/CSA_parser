@@ -115,6 +115,7 @@ class Section:
                 q = Question()
                 q.index = a
                 q.question = b
+                q.isAnswered = False
                 current_ss.questions.append(q)
                 if not isN(a_plus_1) or not isN(b_plus_1) or (isN(a_plus_1) and isN(b_plus_1) and isN(c_plus_1)):   # da keine weiteren Zeilen (nächste Frage/Sectionheader direkt darunter oder EOF darunter) ist keine single/multiple choice
                     vals = self.isDropdown(self.ws.cell(row=row, column=4))
@@ -122,6 +123,7 @@ class Section:
                         q.answer = ""
                     else:
                         q.answer = d
+                        q.isAnswered = True
                     if vals is None:  # keine optionen im dropdown / keine data validation bedeutet freitext
                         q.type = "T"   # text
                     elif vals == ['Yes', 'No']:  # yes / no binary question
@@ -136,11 +138,12 @@ class Section:
                     q.options = {}
                     q.type = "M"
                     while row_offset < 50:     # Annahme: keine felder mit mehr als 50 optionen (failsave um forever while loop zu vermeiden)
-                        if (not isN(self.ws.cell(row=row + row_offset, column=1).value) or not isN(self.ws.cell(row=row + row_offset, column=2).value)) or isN(self.ws.cell(row+row_offset, 3).value):
+                        if (not isN(self.ws.cell(row=row + row_offset, column=1).value) or not isN(self.ws.cell(row=row + row_offset, column=2).value)) or isN(self.ws.cell(row+row_offset, 3).value):  # break if either col A or B becomes not null (new question or header) or if col C is empty (EOF)
                             break
                         val = False
                         if self.ws.cell(row=row + row_offset, column=4).value == "Yes":
                             val = True
+                            q.isAnswered = True
                         q.options[self.ws.cell(row=row + row_offset, column=3).value] = val
                         row_offset += 1
                     else:
@@ -148,11 +151,19 @@ class Section:
                 else:
                     raise Exception(f"This shouldnt happen, parsing error at {q.index} {q.question}")
 
-            if isN(a) and not isN(b) and b != COMMENT: # Saudumme Ausnahme nur bei 1.4.7 ist for some reason die Option in B statt in C
-                pass
+            if a == "1.4.7":  # Saudumme Ausnahme nur bei 1.4.7 ist for some reason die Option in B statt in C
+                q.options = {}
+                q.type = "E"
+                row_offset = 1
+                while row_offset < 50:  # same as above
+                    if (isN(self.ws.cell(row+row_offset, 1).value) and isN(self.ws.cell(row+row_offset, 2).value) and isN(self.ws.cell(row+row_offset, 3).value) and isN(self.ws.cell(row+row_offset, 4).value)) or self.ws.cell(row+row_offset, 2).value == COMMENT:
+                        break
+                    q.options[self.ws.cell(row+row_offset, 2).value] = self.ws.cell(row+row_offset, 4).value
+                    row_offset += 1
 
             if b == COMMENT:
                 q.comment = d
+                q.isAnswered = True
 
             if not isN(d):
                 if "??" in d or "tbv" in d:
@@ -170,7 +181,7 @@ class CSA:
             raise Exception("Die Input-Exceldatei bitte zuvor öffnen!")
         print_title()
         self.origin_file = self.select_wb()
-        with warnings.catch_warnings(record=True):
+        with warnings.catch_warnings(record=True):  # Suppressing irrelevant warning here
             warnings.simplefilter("always")
             self.wb = load_workbook(self.origin_file)
         self.language = self.check_lang()
@@ -179,10 +190,39 @@ class CSA:
         del self.x
         for ws in self.wb.worksheets:
             self.sections.append(Section(ws, self))
+        self.check_unanswered()
         # printing tbvs
         self.print_tbvs()
         print("Sucessfully parsed CSA!")
 
+
+    def check_unanswered(self):
+        unanswered = []
+        answered = []
+        for s in self.sections:
+            for ss in s.subsections:
+                for q in ss.questions:
+                    if q.isAnswered:
+                        answered.append(q)
+                    else:
+                        unanswered.append(q)
+        total_length = len(unanswered) + len(answered)
+        self.question_count = total_length
+        self.section_count = len(self.sections)
+        self.questions_answered = len(answered)
+        self.questions_unanswered = len(unanswered)
+        if 0 < len(unanswered) < 10:  # print questions in question if theres only a handful of em
+            print(f"{Fore.LIGHTRED_EX}Found unanswered questions! See below:{Style.RESET_ALL}")
+            for q in unanswered:
+                print(f"  {Fore.LIGHTYELLOW_EX}{q.index} {q.question}{Style.RESET_ALL}")
+        if len(unanswered) > 0 and not DEBUG:
+            i = input(f"{Fore.LIGHTRED_EX}Found {len(unanswered)} unanswered questions! Type 'Y' to continue and any other key to print them and abort:{Style.RESET_ALL}")
+            if i.upper() == "Y":
+                print("Continuing...")
+            else:
+                for q in unanswered:
+                    print(f"  {q.index} {q.question}")
+                sys.exit("Exiting...")
 
     def print_tbvs(self):
         if len(self.tbvs) > 0:
