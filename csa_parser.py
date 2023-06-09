@@ -8,7 +8,7 @@ import openpyxl
 from colorama import Fore, Back, Style
 from openpyxl.reader.excel import load_workbook
 
-DEBUG = True
+DEBUG = False
 COMMENT = ""
 
 def print_title():
