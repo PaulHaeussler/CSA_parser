@@ -116,13 +116,19 @@ class Section:
                 current_ss.questions.append(q)
                 if not isN(a_plus_1) or not isN(b_plus_1) or (isN(a_plus_1) and isN(b_plus_1) and isN(c_plus_1)):   # da keine weiteren Zeilen (nächste Frage/Sectionheader direkt darunter oder EOF darunter) ist keine single/multiple choice
                     vals = self.isDropdown(self.ws.cell(row=row, column=4))
-                    q.answer = d
+                    if d is None:
+                        q.answer = ""
+                    else:
+                        q.answer = d
                     if vals is None:  # keine optionen im dropdown / keine data validation bedeutet freitext
                         q.type = "T"   # text
                     elif vals == ['Yes', 'No']:  # yes / no binary question
                         q.type = "B"  # binary
                     else:     # es gibt dropdown, aber mit anderen werten als yes/no (z.b. länder)
                         q.type = "S"   # select
+                        q.options = {}
+                        for v in vals:
+                            q.options[v] = v == q.answer
                 elif isN(a_plus_1) and isN(b_plus_1) and not isN(c_plus_1):    # multiple choice, sichergehen
                     row_offset = 1
                     q.options = {}
@@ -171,14 +177,39 @@ class CSA:
         del self.x
         for ws in self.wb.worksheets:
             self.sections.append(Section(ws, self))
-        if len(self.tbvs) > 0:
-            i = input(Fore.RED + Style.BRIGHT + Back.BLACK + "WARNING: Unresolved TBVs found. Type 'Y' to continue and any other key to abort:" + Style.RESET_ALL)
-            if i.upper() == "Y":
-                print("Continuing...")
-            else:
-                sys.exit("Exiting...")
+        # printing tbvs
+        self.print_tbvs()
         print("Sucessfully parsed CSA!")
 
+
+    def print_tbvs(self):
+        if len(self.tbvs) > 0:
+            # a lot of code just to markup the relevant part
+            for tbv in self.tbvs:
+                tmp = None
+                if tbv.type == "M":
+                    if "??" in tbv.comment:
+                        tmp = tbv.comment.partition("??")
+                    else:  # tbv
+                        tmp = tbv.comment.partition("tbv")
+                elif "??" in tbv.answer:
+                    tmp = tbv.answer.partition("??")
+                elif "tbv" in tbv.answer:
+                    tmp = tbv.answer.partition("tbv")
+                else:
+                    if hasattr(tbv, "comment"):
+                        if "??" in tbv.comment:
+                            tmp = tbv.comment.partition("??")
+                        elif "tbv" in tbv.comment:
+                            tmp = tbv.comment.partition("tbv")
+                print(f"  {tbv.index} {tmp[0]}{Fore.RED}{tmp[1]}{Style.RESET_ALL}{tmp[2]}")
+            if not DEBUG:
+                i = input(
+                    Fore.RED + Style.BRIGHT + Back.BLACK + "WARNING: Unresolved TBVs found. Type 'Y' to continue and any other key to abort:" + Style.RESET_ALL)
+                if i.upper() == "Y":
+                    print("Continuing...")
+                else:
+                    sys.exit("Exiting...")
 
     def select_wb(self):
         workbooks = []
