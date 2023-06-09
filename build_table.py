@@ -1,5 +1,5 @@
 import docx
-from colorama import Fore, Back, Style
+from colorama import Fore, Back, Style, init
 from datetime import datetime
 
 from docx.oxml import OxmlElement
@@ -12,6 +12,7 @@ from docx.table import _Cell
 
 from csa_parser import CSA
 
+init(convert=True)
 
 def set_border(cell):
     set_cell_border(

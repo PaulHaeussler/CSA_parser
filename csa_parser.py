@@ -5,11 +5,13 @@ import sys
 import pywintypes
 import win32com.client
 import openpyxl
-from colorama import Fore, Back, Style
+from colorama import Fore, Back, Style, init
 from openpyxl.reader.excel import load_workbook
 
 DEBUG = False
 COMMENT = ""
+
+init(convert=True)
 
 def print_title():
     print(Fore.LIGHTCYAN_EX)
