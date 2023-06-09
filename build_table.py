@@ -88,10 +88,11 @@ if csa.language == "EN":
     ANSWER = "Answer"
     COMMENT = "Comment"
 
+doc.add_paragraph().add_run(f"Questions answered: {csa.questions_answered}")
+doc.add_paragraph().add_run(f"Anzahl Tables: {csa.ss_count}")
 sc = 1  # section counter
 for s in csa.sections:
     print(f"  Creating section {sc} {s.name}")
-    doc.add_paragraph().add_run(f"Questions answered: {csa.questions_answered}")
     # Set title
     pt = doc.add_paragraph().add_run(f"{sc}. {s.name}")
     pt.font.size = Pt(12)

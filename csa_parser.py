@@ -211,6 +211,10 @@ class CSA:
         self.section_count = len(self.sections)
         self.questions_answered = len(answered)
         self.questions_unanswered = len(unanswered)
+        self.ss_count = 0
+        for s in self.sections:
+            for ss in s.subsections:
+                self.ss_count += 1
         if 0 < len(unanswered) < 10:  # print questions in question if theres only a handful of em
             print(f"{Fore.LIGHTRED_EX}Found unanswered questions! See below:{Style.RESET_ALL}")
             for q in unanswered:
