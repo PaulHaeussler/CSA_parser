@@ -248,7 +248,7 @@ class CSA:
                             tmp = tbv.comment.partition("??")
                         elif "tbv" in tbv.comment:
                             tmp = tbv.comment.partition("tbv")
-                print(f"  {tbv.index} {tmp[0]}{Fore.RED}{tmp[1]}{Style.RESET_ALL}{tmp[2]}")
+                print(f"  {Fore.LIGHTCYAN_EX}{tbv.index}{Style.RESET_ALL} {tmp[0]}{Fore.RED}{tmp[1]}{Style.RESET_ALL}{tmp[2]}")
             if not DEBUG:
                 i = input(
                     Fore.RED + Style.BRIGHT + Back.BLACK + "WARNING: Unresolved TBVs found. Type 'Y' to continue and any other key to abort:" + Style.RESET_ALL)
