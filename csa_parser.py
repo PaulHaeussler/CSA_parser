@@ -158,7 +158,10 @@ class Section:
                 while row_offset < 50:  # same as above
                     if (isN(self.ws.cell(row+row_offset, 1).value) and isN(self.ws.cell(row+row_offset, 2).value) and isN(self.ws.cell(row+row_offset, 3).value) and isN(self.ws.cell(row+row_offset, 4).value)) or self.ws.cell(row+row_offset, 2).value == COMMENT:
                         break
-                    q.options[self.ws.cell(row+row_offset, 2).value] = self.ws.cell(row+row_offset, 4).value
+                    v = self.ws.cell(row+row_offset, 4).value
+                    if v is None:
+                        v = ""
+                    q.options[self.ws.cell(row+row_offset, 2).value] = v
                     row_offset += 1
 
             if b == COMMENT:
@@ -263,18 +266,24 @@ class CSA:
             workbooks.append(wb.FullName)
             print(f"{len(workbooks)}. {wb.fullName}")
             del wb
-        if DEBUG:
-            return workbooks[0]
-        while True:
-            inpt = input("Type the number of the opened workbook to use as input:")
-            if not inpt.isnumeric():
-                print("Invalid entry, try again")
-                continue
-            i = int(inpt)
-            if i > 0 and i <= len(workbooks):
-                return workbooks[i-1]
-            else:
-                print("Invalid workbook, try again")
+        if len(self.x.Workbooks) > 0:
+            if DEBUG:
+                return workbooks[0]
+            while True:
+                inpt = input("Type the number of the opened workbook to use as input:")
+                if not inpt.isnumeric():
+                    print("Invalid entry, try again")
+                    continue
+                i = int(inpt)
+                if i > 0 and i <= len(workbooks):
+                    return workbooks[i-1]
+                else:
+                    print("Invalid workbook, try again")
+        else: 
+            while True:
+                i = input("Bitte Pfad zur Mappe angeben: ")
+                if os.path.isfile(i):
+                    return i
 
 
     def check_lang(self):
