@@ -9,6 +9,7 @@ from colorama import Fore, Back, Style, init
 from openpyxl.reader.excel import load_workbook
 
 DEBUG = False
+DEBUG_PATH = "C:\\Users\\U1282433\\Downloads\\digital rewe alt.xlsx"
 COMMENT = ""
 
 init(convert=True)
@@ -218,6 +219,7 @@ class CSA:
         for s in self.sections:
             for ss in s.subsections:
                 self.ss_count += 1
+        print(f"{Fore.LIGHTGREEN_EX}{len(answered)} out of {len(answered) + len(unanswered)} were answered{Style.RESET_ALL}")
         if 0 < len(unanswered) < 10:  # print questions in question if theres only a handful of em
             print(f"{Fore.LIGHTRED_EX}Found unanswered questions! See below:{Style.RESET_ALL}")
             for q in unanswered:
@@ -280,6 +282,8 @@ class CSA:
                 else:
                     print("Invalid workbook, try again")
         else: 
+            if DEBUG:
+                return DEBUG_PATH
             while True:
                 i = input("Bitte Pfad zur Mappe angeben: ")
                 if os.path.isfile(i):
@@ -293,8 +297,8 @@ class CSA:
                 if ws.title[2:] == "Demographics":
                     COMMENT = "Comment"
                     return "EN"
-                elif ws.title[2:] == "Demografische Daten":
-                    COMMENT = "Kommentar"
+                elif ws.title[2:] == "Demographische Daten":
+                    COMMENT = "Comment"  #TODO: Anpassen sobald die keks auch mal das im Export korrigieren
                     return "DE"
                 else:
                     raise Exception(f"Demographics sheet in unknown language! {ws.title}")
