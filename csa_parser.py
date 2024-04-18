@@ -165,7 +165,7 @@ class Section:
                     q.options[self.ws.cell(row+row_offset, 2).value] = v
                     row_offset += 1
 
-            if b == COMMENT:
+            if b == COMMENT and d is not None:
                 q.comment = d
                 q.isAnswered = True
 
