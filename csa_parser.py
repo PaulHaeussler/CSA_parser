@@ -193,7 +193,8 @@ class CSA:
         self.tbvs = []
         del self.x
         for ws in self.wb.worksheets:
-            self.sections.append(Section(ws, self))
+            if not ws.title in ['Details', 'Einzelheiten']:
+                self.sections.append(Section(ws, self))
         self.check_unanswered()
         # printing tbvs
         self.print_tbvs()
